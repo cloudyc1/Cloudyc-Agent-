@@ -1,11 +1,11 @@
 package io.binghe.ai.chat.service.impl;
 
-import io.binghe.ai.chat.client.DeepSeekClient;
-import io.binghe.ai.chat.constants.AIConstants;
+import io.binghe.ai.chat.assistant.ChatAssistant;
 import io.binghe.ai.chat.model.AIMessage;
+import io.binghe.ai.chat.model.ChatSession;
 import io.binghe.ai.chat.service.AIChatContextService;
 import io.binghe.ai.chat.service.AIChatService;
-import io.binghe.ai.chat.utils.IDUtils;
+import io.binghe.ai.chat.service.ChatSessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,69 +14,62 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * @author binghe(微信 : hacker_binghe)
- * @version 1.0.0
- * @description 实现类
- * @github https://github.com/binghe001
- * @copyright 公众号: 冰河技术
- */
 @Slf4j
 @Service
 public class AIChatServiceImpl implements AIChatService {
 
     @Autowired
-    private DeepSeekClient deepSeekClient;
+    private ChatAssistant chatAssistant;
+
     @Autowired
     private AIChatContextService aiChatContextService;
+
+    @Autowired
+    private ChatSessionService chatSessionService;
 
     @Override
     public String sendMessage(String userId, String userMessage) {
         try {
-            // 生成请求ID用于追踪
             String requestId = UUID.randomUUID().toString().substring(0, 8);
             log.info("开始处理聊天请求，用户ID: {}, 请求ID: {}, 消息: {}", userId, requestId, userMessage);
 
-            // 创建用户消息对象
-            AIMessage aiMessage = new AIMessage(AIConstants.ROLE_USER, userMessage);
-
-            // 将用户消息保存到上下文
-            aiChatContextService.saveContextMessage(userId, aiMessage);
-
-            // 获取上下文消息
-            List<AIMessage> chatContext = aiChatContextService.getContextMessage(userId);
-            log.info("获取到上下文消息，用户ID: {}, 消息数量: {}", userId, chatContext.size());
-
-            if (chatContext.isEmpty()) {
-                log.warn("获取到的上下文消息为空");
-            }
-
-            // 调用DeepSeek API获取回复
-            String response;
-            // 如果获取到的上下文消息为空，或者上下文消息中只有一条消息，则直接发送单条消息
-            if (chatContext.isEmpty() || chatContext.size() == 1) {
-                response = deepSeekClient.sendMessage(userMessage);
-            } else {
-                // 带上下文发送消息，但如果失败则兜底回退到发送单条消息
-                try {
-                    response = deepSeekClient.sendMessageWithContext(chatContext);
-                } catch (Exception e) {
-                    log.warn("上下文消息发送失败，发送单条消息, 用户ID:{}, 错误信息:{}", userId, e.getMessage());
-                    response = deepSeekClient.sendMessage(userMessage);
-                }
-            }
-
-            // 创建AI回复消息对象
-            AIMessage assistantMessage = new AIMessage(AIConstants.ROLE_ASSISTANT, response);
-
-            // 将AI回复添加到上下文
-            aiChatContextService.saveContextMessage(userId, assistantMessage);
+            String response = chatAssistant.chat(userId, userMessage);
 
             log.info("请求处理完成，用户ID: {}, 请求ID: {}, 回复消息长度: {}", userId, requestId, response.length());
             return response;
 
         } catch (Exception e) {
             log.error("请求处理失败，用户ID: {}, 消息: {}, 错误: {}", userId, userMessage, e.getMessage(), e);
+            return "请求处理异常，请稍后再试。";
+        }
+    }
+
+    @Override
+    public String sendMessageWithSession(String userId, String sessionId, String userMessage) {
+        try {
+            String requestId = UUID.randomUUID().toString().substring(0, 8);
+            log.info("开始处理聊天请求，用户ID: {}, 会话ID: {}, 请求ID: {}, 消息: {}",
+                    userId, sessionId, requestId, userMessage);
+
+            ChatSession session = chatSessionService.getSession(sessionId);
+            if (session == null) {
+                log.warn("会话不存在，创建新会话, userId: {}", userId);
+                session = chatSessionService.createSession(userId, userMessage);
+                sessionId = session.getSessionId();
+            } else {
+                chatSessionService.incrementMessageCount(sessionId, userId);
+                chatSessionService.updateSession(sessionId, userId);
+            }
+
+            String response = chatAssistant.chat(sessionId, userMessage);
+
+            log.info("请求处理完成，用户ID: {}, 会话ID: {}, 请求ID: {}, 回复消息长度: {}",
+                    userId, sessionId, requestId, response.length());
+            return response;
+
+        } catch (Exception e) {
+            log.error("请求处理失败，用户ID: {}, 会话ID: {}, 消息: {}, 错误: {}",
+                    userId, sessionId, userMessage, e.getMessage(), e);
             return "请求处理异常，请稍后再试。";
         }
     }
@@ -110,6 +103,16 @@ public class AIChatServiceImpl implements AIChatService {
         } catch (Exception e) {
             log.error("获取历史对话的大小失败，用户ID: {}, 错误: {}", userId, e.getMessage());
             return 0;
+        }
+    }
+
+    @Override
+    public List<AIMessage> getSessionMessages(String sessionId) {
+        try {
+            return aiChatContextService.getContextMessage(sessionId);
+        } catch (Exception e) {
+            log.error("获取会话消息失败，会话ID: {}, 错误: {}", sessionId, e.getMessage());
+            return Collections.emptyList();
         }
     }
 }

@@ -18,6 +18,11 @@ public class MessageRequest {
     private String userId;
 
     /**
+     * 会话ID（可选）
+     */
+    private String sessionId;
+
+    /**
      * 用户消息
      */
     @NotBlank(message = "消息内容不能为空")

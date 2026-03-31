@@ -1,324 +1,341 @@
 const API_BASE = '/api/chat';
-let messageCount = 0;
+const SESSION_API_BASE = '/api/chat/session';
+let currentSessionId = null;
+let currentSessionTitle = '';
 
-// 获取用户ID
 function getUserId() {
-    const userId = document.getElementById('userId').value.trim();
-    return userId || 'user_001';
+    return document.getElementById('userId').value.trim() || 'user_001';
 }
 
-// 更新上下文指示器
-function updateContextIndicator(count) {
-    document.getElementById('contextCount').textContent = count;
-    document.getElementById('contextCountDisplay').textContent = count;
-}
-
-// 更新消息计数
-function updateMessageCount() {
-    messageCount++;
-    document.getElementById('messageCount').textContent = messageCount;
-}
-
-// 更新最后活动时间
-function updateLastActivity() {
-    const now = new Date();
-    const timeStr = now.getHours().toString().padStart(2, '0') + ':' +
-        now.getMinutes().toString().padStart(2, '0');
-    document.getElementById('lastActivity').textContent = timeStr;
-}
-
-// 设置状态
-function setStatus(elementId, status, text) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = text;
-        // 可以根据状态添加不同的样式
-        if (status === 'online') {
-            element.style.color = '#10b981';
-        } else if (status === 'offline') {
-            element.style.color = '#ef4444';
-        } else {
-            element.style.color = '#60a5fa';
-        }
+function setStatus(online) {
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('apiStatusText');
+    if (online) {
+        dot.classList.remove('offline');
+        text.textContent = '在线';
+    } else {
+        dot.classList.add('offline');
+        text.textContent = '离线';
     }
 }
 
-// 添加消息到聊天窗口
-function addMessage(role, content) {
-    const messagesContainer = document.getElementById('chatMessages');
+function addMessage(role, content, timestamp) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `message message-${role}`;
 
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message message-${role}`;
+    const avatar = document.createElement('div');
+    avatar.className = `message-avatar ${role === 'user' ? 'user-avatar' : 'ai-avatar'}`;
+    avatar.textContent = role === 'user' ? '👤' : '🤖';
 
-    const avatarDiv = document.createElement('div');
-    avatarDiv.className = `message-avatar ${role === 'user' ? 'user-avatar' : 'ai-avatar'}`;
-    avatarDiv.textContent = role === 'user' ? '👤' : '🤖';
+    const bubble = document.createElement('div');
+    bubble.className = 'message-content';
+    bubble.innerHTML = content.replace(/\n/g, '<br>');
 
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
+    const time = document.createElement('div');
+    time.className = 'message-time';
+    const ts = timestamp
+        ? new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+        : new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    time.textContent = `${role === 'user' ? '我' : 'AI助手'} · ${ts}`;
 
-    // 处理换行和基本格式化
-    const formattedContent = content.replace(/\n/g, '<br>');
-    contentDiv.innerHTML = formattedContent;
-
-    const timeDiv = document.createElement('div');
-    timeDiv.className = 'message-time';
-    timeDiv.textContent = `${role === 'user' ? '我' : 'AI助手'} • ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-
-    contentDiv.appendChild(timeDiv);
-
-    messageDiv.appendChild(avatarDiv);
-    messageDiv.appendChild(contentDiv);
-    messagesContainer.appendChild(messageDiv);
-
-    // 滚动到底部
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-    // 更新计数
-    if (role === 'user') {
-        updateMessageCount();
-    }
-    updateLastActivity();
+    bubble.appendChild(time);
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
 }
 
-// 添加加载消息
-function addLoadingMessage() {
-    const messagesContainer = document.getElementById('chatMessages');
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message message-ai';
-    messageDiv.id = 'loadingMessage';
-
-    const avatarDiv = document.createElement('div');
-    avatarDiv.className = 'message-avatar ai-avatar';
-    avatarDiv.textContent = '🤖';
-
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content loading-message';
-    contentDiv.innerHTML = 'AI助手正在思考中 <div class="loading-dots"><span></span><span></span><span></span></div>';
-
-    messageDiv.appendChild(avatarDiv);
-    messageDiv.appendChild(contentDiv);
-    messagesContainer.appendChild(messageDiv);
-
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+function showLoading() {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'message message-ai';
+    div.id = 'loadingMsg';
+    div.innerHTML = `
+        <div class="message-avatar ai-avatar">🤖</div>
+        <div class="message-content loading-message">
+            AI正在思考 <div class="loading-dots"><span></span><span></span><span></span></div>
+        </div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
 }
 
-// 移除加载消息
-function removeLoadingMessage() {
-    const loadingMessage = document.getElementById('loadingMessage');
-    if (loadingMessage) {
-        loadingMessage.remove();
-    }
+function hideLoading() {
+    const el = document.getElementById('loadingMsg');
+    if (el) el.remove();
 }
 
-// 发送消息
+function clearChat() {
+    document.getElementById('chatMessages').innerHTML = `
+        <div class="message message-ai">
+            <div class="message-avatar ai-avatar">🤖</div>
+            <div class="message-content">
+                开始新的对话吧！<br>当前对话将被保存到历史记录中。
+                <div class="message-time">系统消息 · 刚刚</div>
+            </div>
+        </div>`;
+}
+
+function startNewChat() {
+    currentSessionId = null;
+    currentSessionTitle = '';
+    document.getElementById('currentSessionTitle').textContent = '';
+    clearChat();
+    document.getElementById('messageInput').focus();
+    document.querySelectorAll('.session-item').forEach(i => i.classList.remove('active'));
+}
+
 async function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const sendButton = document.getElementById('sendButton');
-    const message = messageInput.value.trim();
-
-    if (!message) {
-        alert('请输入消息内容');
-        return;
-    }
+    const input = document.getElementById('messageInput');
+    const btn = document.getElementById('sendButton');
+    const msg = input.value.trim();
+    if (!msg) return;
 
     const userId = getUserId();
-    if (!userId) {
-        alert('请输入用户标识符');
-        return;
-    }
-
-    // 添加用户消息
-    addMessage('user', message);
-    messageInput.value = '';
-
-    // 禁用发送按钮并添加加载消息
-    sendButton.disabled = true;
-    addLoadingMessage();
+    addMessage('user', msg);
+    input.value = '';
+    input.style.height = 'auto';
+    btn.disabled = true;
+    showLoading();
 
     try {
-        const response = await fetch(`${API_BASE}/send`, {
+        const resp = await fetch(`${API_BASE}/send/session`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: userId, message: message })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                userId: userId,
+                message: msg,
+                sessionId: currentSessionId
+            })
         });
-
-        const data = await response.json();
-        removeLoadingMessage();
+        const data = await resp.json();
+        hideLoading();
 
         if (data.code === 200) {
-            addMessage('ai', data.data);
-            setStatus('apiStatusText', 'online', '正常');
+            const result = data.data;
+            addMessage('ai', result.response);
+            setStatus(true);
 
-            // 更新上下文计数
-            const stats = await getStatsData();
-            if (stats) {
-                updateContextIndicator(stats.historySize || 0);
+            if (result.sessionId && result.sessionId !== currentSessionId) {
+                currentSessionId = result.sessionId;
+                setTimeout(() => loadSessionList(), 600);
+            }
+            if (!currentSessionTitle && currentSessionId) {
+                setTimeout(() => updateTitle(), 800);
             }
         } else {
-            addMessage('ai', `⚠️ 抱歉，处理您的请求时遇到了问题：${data.message || '未知错误'}`);
-            setStatus('apiStatusText', 'offline', '异常');
+            addMessage('ai', '请求失败：' + (data.message || '未知错误'));
+            setStatus(false);
         }
-    } catch (error) {
-        removeLoadingMessage();
-        addMessage('ai', '🔌 网络连接异常，请检查网络后重试');
-        setStatus('apiStatusText', 'offline', '连接失败');
-        console.error('发送消息失败:', error);
+    } catch (e) {
+        hideLoading();
+        addMessage('ai', '网络连接异常，请检查网络后重试');
+        setStatus(false);
     } finally {
-        sendButton.disabled = false;
-        messageInput.focus();
-        // 重置输入框高度
-        messageInput.style.height = 'auto';
+        btn.disabled = false;
+        input.focus();
     }
 }
 
-// 清除对话历史
-async function clearHistory() {
-    const userId = getUserId();
-    if (!confirm('确定要清除对话历史吗？这将重置上下文记忆功能。')) return;
-
+async function updateTitle() {
+    if (!currentSessionId) return;
     try {
-        const response = await fetch(`${API_BASE}/history/${userId}`, { method: 'DELETE' });
-        const data = await response.json();
-        alert(`✅ ${data.message || '对话历史已清除'}`);
-        updateContextIndicator(0);
-        setStatus('redisStatus', 'redisStatusText', 'online', '已清除');
-    } catch (error) {
-        alert(`❌ 清除失败: ${error.message}`);
+        const resp = await fetch(`${SESSION_API_BASE}/${currentSessionId}`);
+        const data = await resp.json();
+        if (data.code === 200 && data.data) {
+            currentSessionTitle = data.data.title;
+            document.getElementById('currentSessionTitle').textContent = currentSessionTitle;
+        }
+    } catch (e) {
+        console.error('获取标题失败:', e);
+    }
+}
+
+async function loadSessionList() {
+    const userId = getUserId();
+    const el = document.getElementById('sessionList');
+    try {
+        const resp = await fetch(`${SESSION_API_BASE}/list/${userId}`);
+        const data = await resp.json();
+
+        if (data.code === 200 && data.data && data.data.length > 0) {
+            const sessions = data.data;
+            el.innerHTML = sessions.map((s, i) => `
+                <div class="session-item ${s.sessionId === currentSessionId ? 'active' : ''}"
+                     data-id="${s.sessionId}" onclick="loadSession('${s.sessionId}')">
+                    <div class="session-item-icon">💬</div>
+                    <div class="session-item-info">
+                        <div class="session-item-title">${escapeHtml(s.title)}</div>
+                        <div class="session-item-meta">
+                            <span>${formatDate(s.updateTime)}</span>
+                            <span class="session-item-count">${s.messageCount}条</span>
+                        </div>
+                    </div>
+                    <button class="session-item-delete"
+                            onclick="event.stopPropagation(); deleteSession('${s.sessionId}')">✕</button>
+                </div>`).join('');
+        } else {
+            el.innerHTML = '<div class="session-empty">暂无历史对话<br>发送消息后自动创建</div>';
+        }
+    } catch (e) {
+        el.innerHTML = '<div class="session-empty">加载失败</div>';
+    }
+}
+
+async function loadSession(sessionId) {
+    try {
+        const [sessionResp, msgResp] = await Promise.all([
+            fetch(`${SESSION_API_BASE}/${sessionId}`),
+            fetch(`${API_BASE}/history/session/${sessionId}`)
+        ]);
+        const sessionData = await sessionResp.json();
+        const msgData = await msgResp.json();
+
+        if (sessionData.code !== 200 || !sessionData.data) {
+            alert('会话不存在或已过期');
+            return;
+        }
+
+        currentSessionId = sessionId;
+        currentSessionTitle = sessionData.data.title;
+        document.getElementById('currentSessionTitle').textContent = currentSessionTitle;
+
+        const messages = (msgData.code === 200 && msgData.data) ? msgData.data : [];
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+
+        if (messages.length === 0) {
+            addMessage('ai', '该对话暂无消息记录。');
+        } else {
+            messages.forEach(m => {
+                addMessage(m.role === 'user' ? 'user' : 'ai', m.content, m.timestamp);
+            });
+        }
+
+        document.querySelectorAll('.session-item').forEach(i => i.classList.remove('active'));
+        const active = document.querySelector(`.session-item[data-id="${sessionId}"]`);
+        if (active) active.classList.add('active');
+
+        container.scrollTop = container.scrollHeight;
+    } catch (e) {
+        console.error('加载会话失败:', e);
+        alert('加载会话失败，请重试');
+    }
+}
+
+async function deleteSession(sessionId) {
+    if (!confirm('确定删除这个对话吗？')) return;
+    try {
+        const resp = await fetch(`${SESSION_API_BASE}/${sessionId}?userId=${getUserId()}`, {method: 'DELETE'});
+        const data = await resp.json();
+        if (data.code === 200) {
+            if (sessionId === currentSessionId) startNewChat();
+            loadSessionList();
+        } else {
+            alert('删除失败');
+        }
+    } catch (e) {
+        alert('删除失败');
+    }
+}
+
+async function clearHistory() {
+    if (!confirm('确定清除当前对话历史吗？')) return;
+    try {
+        const id = currentSessionId || getUserId();
+        await fetch(`${API_BASE}/history/${id}`, {method: 'DELETE'});
+        clearChat();
+        alert('对话历史已清除');
+    } catch (e) {
+        alert('清除失败');
     }
 }
 
 async function getHistory() {
-    const userId = getUserId();
-    try {
-        const response = await fetch(`${API_BASE}/history/${userId}`);
-        const history = await response.json();
-
-        if (history.length === 0) {
-            alert('📝 暂无对话历史\n\n上下文记忆为空，开始新的对话吧！');
-            return;
-        }
-
-        let historyText = `📋 对话历史记录 (共${history.length}条)\n` + '='.repeat(40) + '\n\n';
-        history.forEach((msg, index) => {
-            const role = msg.role === 'user' ? '👤 用户' : '🤖 AI助手';
-            const time = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : '未知时间';
-            historyText += `${index + 1}. [${role}] ${time}\n${msg.content}\n\n${'─'.repeat(30)}\n\n`;
-        });
-
-        alert(historyText);
-    } catch (error) {
-        alert(`❌ 获取历史失败: ${error.message}`);
-    }
-}
-
-// 获取统计数据
-async function getStatsData() {
-    const userId = getUserId();
-    try {
-        const response = await fetch(`${API_BASE}/stats/${userId}`);
-        return await response.json();
-    } catch (error) {
-        console.error('获取统计数据失败:', error);
-        return null;
-    }
-}
-
-// 获取详细统计
-async function getStats() {
-    const stats = await getStatsData();
-    if (stats) {
-        alert(
-            `📊 用户对话统计信息\n` +
-            '='.repeat(30) + `\n\n` +
-            `👤 用户ID: ${stats.userId || getUserId()}\n` +
-            `🧠 上下文记录数: ${stats.historySize || 0}\n` +
-            `⏰ 统计时间: ${new Date(stats.timestamp || Date.now()).toLocaleString()}\n` +
-            `💾 Redis 状态: 正常运行\n` +
-            `🚀 Spring AI 状态: 服务在线`
-        );
-    } else {
-        alert('❌ 无法获取统计信息，请检查后端服务连接');
-    }
-}
-
-// 检查系统健康状态
-async function checkSystemHealth() {
-    try {
-        const response = await fetch(`${API_BASE}/health`);
-        const health = await response.json();
-
-        if (health.status === 'UP') {
-            setStatus('redisStatusText', 'online', '运行正常');
-        } else {
-            setStatus('redisStatusText', 'offline', '服务异常');
-        }
-    } catch (error) {
-        setStatus('redisStatusText', 'offline', '连接失败');
-    }
-}
-
-// 处理键盘事件
-function handleKeyPress(event) {
-    // Ctrl+Enter 发送消息
-    if (event.key === 'Enter' && event.ctrlKey) {
-        event.preventDefault();
-        sendMessage();
+    if (!currentSessionId) {
+        alert('当前没有进行中的对话，请先发送消息或选择历史对话');
         return;
     }
+    try {
+        const resp = await fetch(`${API_BASE}/history/session/${currentSessionId}`);
+        const data = await resp.json();
+        const msgs = (data.code === 200 && data.data) ? data.data : [];
+        if (msgs.length === 0) { alert('当前对话暂无消息'); return; }
 
-    // 自动调整输入框高度
-    if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey) {
-        event.preventDefault();
-        // 允许按 Enter 发送，或者可以改为需要按 Ctrl+Enter
-        // 这里我们改为按 Enter 发送，按 Shift+Enter 换行
-        if (!event.shiftKey) {
-            sendMessage();
-        }
+        let text = `当前对话记录 (共${msgs.length}条)\n${'='.repeat(30)}\n\n`;
+        msgs.forEach((m, i) => {
+            const role = m.role === 'user' ? '👤 用户' : '🤖 AI';
+            text += `${i + 1}. [${role}]\n${m.content}\n\n${'─'.repeat(20)}\n\n`;
+        });
+        alert(text);
+    } catch (e) {
+        alert('获取失败');
     }
-
-    // 调整输入框高度
-    const textarea = event.target;
-    textarea.style.height = 'auto';
-    textarea.style.height = (textarea.scrollHeight) + 'px';
 }
 
-// 页面加载完成后的初始化
+async function getStats() {
+    try {
+        const resp = await fetch(`${API_BASE}/stats/${getUserId()}`);
+        const s = await resp.json();
+        alert(
+            `📊 用户对话统计\n${'='.repeat(25)}\n\n` +
+            `👤 用户ID: ${s.userId || getUserId()}\n` +
+            `🧠 上下文记录数: ${s.historySize || 0}\n` +
+            `⏰ 时间: ${new Date(s.timestamp || Date.now()).toLocaleString()}`
+        );
+    } catch (e) {
+        alert('获取统计失败');
+    }
+}
+
+function escapeHtml(t) {
+    const d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+}
+
+function formatDate(str) {
+    if (!str) return '';
+    const d = new Date(str);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+        return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    }
+    return d.toLocaleDateString([], {month: 'short', day: 'numeric'});
+}
+
+async function checkHealth() {
+    try {
+        const resp = await fetch(`${API_BASE}/health`);
+        const data = await resp.json();
+        setStatus(data.status === 'UP');
+    } catch (e) {
+        setStatus(false);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // 聚焦到输入框
-    document.getElementById('messageInput').focus();
+    const input = document.getElementById('messageInput');
 
-    // 检查系统健康状态
-    checkSystemHealth();
-
-    // 添加输入框事件监听
-    const messageInput = document.getElementById('messageInput');
-    messageInput.addEventListener('input', function() {
+    input.addEventListener('input', function() {
         this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 
-    messageInput.addEventListener('keydown', handleKeyPress);
-
-    // 监听用户ID变化，更新上下文统计
-    document.getElementById('userId').addEventListener('change', async function() {
-        const stats = await getStatsData();
-        if (stats) {
-            updateContextIndicator(stats.historySize || 0);
-        } else {
-            updateContextIndicator(0);
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
         }
     });
 
-    // 定期检查系统状态（每30秒）
-    setInterval(checkSystemHealth, 30000);
+    document.getElementById('userId').addEventListener('change', function() {
+        startNewChat();
+        loadSessionList();
+    });
 
-    // 初始获取上下文统计
-    setTimeout(async () => {
-        const stats = await getStatsData();
-        if (stats) {
-            updateContextIndicator(stats.historySize || 0);
-        }
-    }, 1000);
+    checkHealth();
+    setInterval(checkHealth, 30000);
+    setTimeout(loadSessionList, 500);
+    input.focus();
 });

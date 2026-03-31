@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageResponse {
+public class MessageResponse<T> {
     /**
      * 响应状态码
      */
@@ -26,24 +26,24 @@ public class MessageResponse {
     private String message;
 
     /**
-     * AI回复内容
+     * 响应数据
      */
-    private String data;
+    private T data;
 
     /**
      * 请求ID
      */
     private String requestId;
 
-    public static MessageResponse success(String data) {
-        return new MessageResponse(200, "成功", data, null);
+    public static <T> MessageResponse<T> success(T data) {
+        return new MessageResponse<>(200, "成功", data, null);
     }
 
-    public static MessageResponse success(String data, String requestId) {
-        return new MessageResponse(200, "成功", data, requestId);
+    public static <T> MessageResponse<T> success(T data, String requestId) {
+        return new MessageResponse<>(200, "成功", data, requestId);
     }
 
-    public static MessageResponse error(String message) {
-        return new MessageResponse(500, message, null, null);
+    public static <T> MessageResponse<T> error(String message) {
+        return new MessageResponse<>(500, message, null, null);
     }
 }

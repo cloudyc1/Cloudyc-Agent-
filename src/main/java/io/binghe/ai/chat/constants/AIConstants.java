@@ -20,5 +20,4 @@ public class AIConstants {
     public static String CONTENT = "content";
     public static String ROLE_USER = "user";
     public static String ROLE_ASSISTANT = "assistant";
-    public static String AI_CHAT_CONTEXT = "ai_chat_context:";
 }

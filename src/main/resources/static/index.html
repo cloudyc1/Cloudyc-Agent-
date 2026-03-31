@@ -3,183 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能对话系统 | Spring AI + DeepSeek</title>
-    <!-- Favicon -->
+    <title>智能对话系统 | LangChain4j + DeepSeek</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
     <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-<!-- 顶部标题栏 -->
-<div class="header-container">
-    <h1 class="main-title">
-        <span>🤖</span> AI智能对话系统
-    </h1>
-    <p class="subtitle">
-        基于 Spring AI 框架与大语言模型构建的智能对话平台，集成 Redis 实现高效上下文记忆管理
-    </p>
-    <div class="tech-tags">
-        <span class="tech-tag">Spring AI 1.0</span>
-        <span class="tech-tag">Redis 缓存</span>
-        <span class="tech-tag">上下文记忆</span>
-        <span class="tech-tag">实时对话</span>
-        <span class="tech-tag">多轮交互</span>
-    </div>
-</div>
-
 <!-- 主应用容器 -->
-<div class="app-container">
-    <!-- 聊天区域 -->
-    <div class="chat-container">
-        <div class="chat-header">
-            <h2>
-                <span>💬</span> 智能对话助手
-            </h2>
+<div class="app-layout">
+    <!-- 左侧边栏 - 历史对话 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>💬 对话列表</h2>
+            <button class="new-chat-btn" onclick="startNewChat()" title="开始新对话">
+                <span>+</span> 新对话
+            </button>
         </div>
-
-        <div class="user-controls">
+        <div class="sidebar-user">
             <input type="text" class="user-id-input" id="userId" placeholder="请输入用户标识符" value="cloudyc">
-            <div class="context-badge" id="contextIndicator">
-                上下文记忆: <span id="contextCount">0</span> 条
-            </div>
         </div>
-
-        <div class="messages-container" id="chatMessages">
-            <!-- 欢迎消息 -->
-            <div class="message message-ai">
-                <div class="message-avatar ai-avatar">
-                    🤖
-                </div>
-                <div class="message-content">
-                    您好！我是基于 DeepSeek 大语言模型的智能助手，由 Spring AI 框架驱动。<br><br>
-                    我具备上下文记忆功能，能够记住我们之前的对话内容，实现连贯的多轮对话体验。<br><br>
-                    请开始我们的对话吧！
-                    <div class="message-time">系统消息 • 刚刚</div>
-                </div>
-            </div>
+        <div class="session-list" id="sessionList">
+            <div class="session-empty">暂无历史对话<br>发送消息后自动创建</div>
         </div>
-
-        <div class="input-container">
-            <textarea class="message-input" id="messageInput" placeholder="输入您的问题或消息...（按 Ctrl+Enter 发送）" rows="1"></textarea>
-            <button class="send-button" onclick="sendMessage()" id="sendButton">
-                <span>发送</span>
-                <span>↗</span>
+        <div class="sidebar-footer">
+            <button class="sidebar-action-btn" onclick="getHistory()">
+                <span>📋</span> 查看当前对话
+            </button>
+            <button class="sidebar-action-btn" onclick="getStats()">
+                <span>📊</span> 获取统计
+            </button>
+            <button class="sidebar-action-btn danger" onclick="clearHistory()">
+                <span>🗑️</span> 清除当前对话
             </button>
         </div>
     </div>
 
-    <!-- 侧边信息面板 -->
-    <div class="info-panel">
-        <div class="panel-header">
-            <h2>
-                <span>📊</span> 系统监控面板
-            </h2>
-        </div>
-
-        <div class="panel-content">
-            <!-- 上下文记忆卡片 -->
-            <div class="context-card">
-                <h3>
-                    <span>🧠</span> 上下文记忆状态
-                </h3>
-                <div class="context-count" id="contextCountDisplay">0</div>
-                <div class="context-label">当前对话记录数量</div>
+    <!-- 右侧主区域 -->
+    <div class="main-area">
+        <!-- 聊天区域 -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>
+                    <span>🤖</span> 智能对话助手
+                    <span id="currentSessionTitle" class="session-title"></span>
+                </h2>
+                <div class="chat-header-status">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="apiStatusText">就绪</span>
+                </div>
             </div>
 
-            <!-- 状态网格 -->
-            <div class="status-grid">
-                <div class="status-card">
-                    <div class="status-header">
-                        <div class="status-icon redis-icon">Ⓡ</div>
-                        <div class="status-title">Redis 状态</div>
+            <div class="messages-container" id="chatMessages">
+                <div class="message message-ai">
+                    <div class="message-avatar ai-avatar">🤖</div>
+                    <div class="message-content">
+                        您好！我是基于 DeepSeek 大语言模型的智能助手，由 LangChain4j 框架驱动。<br><br>
+                        请开始我们的对话吧！
+                        <div class="message-time">系统消息 • 刚刚</div>
                     </div>
-                    <div class="status-value" id="redisStatusText">连接中...</div>
-                    <div class="status-description">内存数据库连接状态</div>
-                </div>
-
-                <div class="status-card">
-                    <div class="status-header">
-                        <div class="status-icon ai-icon">AI</div>
-                        <div class="status-title">AI 服务状态</div>
-                    </div>
-                    <div class="status-value" id="apiStatusText">就绪</div>
-                    <div class="status-description">DeepSeek API 可用性</div>
-                </div>
-
-                <div class="status-card">
-                    <div class="status-header">
-                        <div class="status-icon stats-icon">📈</div>
-                        <div class="status-title">对话统计</div>
-                    </div>
-                    <div class="status-value" id="messageCount">0</div>
-                    <div class="status-description">当前会话消息数量</div>
-                </div>
-
-                <div class="status-card">
-                    <div class="status-header">
-                        <div class="status-icon time-icon">⏰</div>
-                        <div class="status-title">最后活动</div>
-                    </div>
-                    <div class="status-value" id="lastActivity">-</div>
-                    <div class="status-description">用户最后操作时间</div>
                 </div>
             </div>
 
-            <!-- 控制面板 -->
-            <div class="controls-panel">
-                <h3>
-                    <span>⚙️</span> 系统控制
-                </h3>
-                <div class="control-buttons">
-                    <button class="control-button" onclick="getHistory()">
-                        <span>📋</span>
-                        <span>查看历史对话</span>
-                    </button>
-                    <button class="control-button" onclick="getStats()">
-                        <span>📊</span>
-                        <span>获取详细统计</span>
-                    </button>
-                    <button class="control-button danger" onclick="clearHistory()">
-                        <span>🗑️</span>
-                        <span>清除历史对话</span>
-                    </button>
-                </div>
+            <div class="input-container">
+            <div class="input-wrapper">
+                <textarea class="message-input" id="messageInput" placeholder="输入您的问题或消息...（按 Enter 发送）" rows="1"></textarea>
+                <button class="send-button" onclick="sendMessage()" id="sendButton">
+                    <span>发送</span>
+                    <span>↗</span>
+                </button>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- 底部特性展示 -->
-<div class="features-container">
-    <h3 class="features-title">🌟 核心功能特性</h3>
-    <div class="features-grid">
-        <div class="feature-item">
-            <div class="feature-icon">🧠</div>
-            <div class="feature-content">
-                <h4>智能上下文记忆</h4>
-                <p>基于 Redis 的智能记忆系统，支持多轮对话上下文保持，实现连贯的对话体验</p>
-            </div>
-        </div>
-        <div class="feature-item">
-            <div class="feature-icon">⚡</div>
-            <div class="feature-content">
-                <h4>高性能 AI 引擎</h4>
-                <p>集成 DeepSeek 最新大语言模型，提供准确、快速、智能的对话响应能力</p>
-            </div>
-        </div>
-        <div class="feature-item">
-            <div class="feature-icon">🔧</div>
-            <div class="feature-content">
-                <h4>Spring AI 框架</h4>
-                <p>基于 Spring AI 1.0 最新框架，提供稳定可靠的企业级 AI 集成解决方案</p>
-            </div>
-        </div>
-        <div class="feature-item">
-            <div class="feature-icon">💾</div>
-            <div class="feature-content">
-                <h4>高效数据管理</h4>
-                <p>Redis 内存数据库提供高速数据存取，确保对话历史的即时保存与检索</p>
-            </div>
         </div>
     </div>
 </div>
