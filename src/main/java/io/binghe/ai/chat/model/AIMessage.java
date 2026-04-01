@@ -54,7 +54,7 @@ public class AIMessage implements Serializable {
         String content;
         if (chatMessage instanceof UserMessage userMessage) {
             role = AIConstants.ROLE_USER;
-            content = userMessage.text() != null ? userMessage.text() : "";
+            content = userMessage.singleText() != null ? userMessage.singleText() : "";
         } else if (chatMessage instanceof AiMessage aiMessage) {
             role = AIConstants.ROLE_ASSISTANT;
             content = aiMessage.text() != null ? aiMessage.text() : "";

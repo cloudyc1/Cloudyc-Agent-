@@ -27,4 +27,9 @@ public class MessageRequest {
      */
     @NotBlank(message = "消息内容不能为空")
     private String message;
+
+    /**
+     * 对话模式（NORMAL/RAG）
+     */
+    private String mode;
 }

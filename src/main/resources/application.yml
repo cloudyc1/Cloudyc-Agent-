@@ -15,6 +15,12 @@ spring:
           min-idle: 2
           max-wait: -1ms
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 langchain4j:
   open-ai:
     chat-model:
@@ -25,6 +31,20 @@ langchain4j:
       max-tokens: 2000
       log-requests: true
       log-responses: false
+
+    embedding-model:
+      api-key: sk-6f64a2d36aca478f9b2c9c3af6f9df1c
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      model-name: text-embedding-v3
+      dimensions: 1536
+
+rag:
+  enabled: true
+  retrieval:
+    top-k: 5
+    similarity-threshold: 0.3
+    max-chunk-size: 500
+    chunk-overlap: 50
 
 server:
   port: 8080
@@ -43,5 +63,6 @@ logging:
 
 ai:
   chat:
-    expire-seconds: 3600
+    expire-seconds: 2592000
     max-message-size: 20
+    session-expire-days: 30

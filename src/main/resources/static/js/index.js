@@ -2,9 +2,245 @@ const API_BASE = '/api/chat';
 const SESSION_API_BASE = '/api/chat/session';
 let currentSessionId = null;
 let currentSessionTitle = '';
+let currentMode = 'NORMAL';
+let knowledgePanelVisible = false;
 
 function getUserId() {
     return document.getElementById('userId').value.trim() || 'user_001';
+}
+
+function toggleMode() {
+    currentMode = currentMode === 'NORMAL' ? 'RAG' : 'NORMAL';
+    updateModeUI();
+    saveModePreference();
+}
+
+function updateModeUI() {
+    const btn = document.getElementById('modeToggleBtn');
+    const modeText = document.getElementById('modeText');
+    
+    if (currentMode === 'RAG') {
+        btn.classList.add('rag-mode');
+        modeText.textContent = '模式: RAG';
+    } else {
+        btn.classList.remove('rag-mode');
+        modeText.textContent = '模式: Normal';
+    }
+}
+
+function saveModePreference() {
+    localStorage.setItem('chatMode', currentMode);
+}
+
+function loadModePreference() {
+    const savedMode = localStorage.getItem('chatMode');
+    if (savedMode && (savedMode === 'NORMAL' || savedMode === 'RAG')) {
+        currentMode = savedMode;
+        updateModeUI();
+    }
+}
+
+function addSystemMessage(content) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'message message-system';
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'message-content system-message';
+    bubble.innerHTML = content.replace(/\n/g, '<br>');
+    
+    const time = document.createElement('div');
+    time.className = 'message-time';
+    time.textContent = `系统 • ${new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
+    
+    bubble.appendChild(time);
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function toggleKnowledgePanel() {
+    const panel = document.getElementById('knowledgePanel');
+    knowledgePanelVisible = !knowledgePanelVisible;
+    panel.classList.toggle('visible', knowledgePanelVisible);
+    if (knowledgePanelVisible) {
+        loadKnowledgeStats();
+    }
+}
+
+async function uploadDocument(file) {
+    const userId = getUserId();
+    const formData = new FormData();
+    formData.append('userId', userId);
+    formData.append('file', file);
+
+    try {
+        console.log('开始上传文档，用户ID:', userId);
+        const resp = await fetch('/api/chat/knowledge/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await resp.json();
+        console.log('上传响应:', data);
+        if (data.code === 200) {
+            console.log('开始刷新知识库统计...');
+            await loadKnowledgeStats();
+            console.log('知识库统计刷新完成');
+            alert('文档上传成功：' + data.data);
+        } else {
+            alert('上传失败：' + data.message);
+        }
+    } catch (e) {
+        console.error('上传异常:', e);
+        alert('上传失败：' + e.message);
+    }
+}
+
+async function addTextToKnowledge(fileName, content) {
+    const userId = getUserId();
+    try {
+        const resp = await fetch('/api/chat/knowledge/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({userId, fileName, content})
+        });
+        const data = await resp.json();
+        if (data.code === 200) {
+            alert('添加成功：' + data.data);
+            await loadKnowledgeStats();
+        } else {
+            alert('添加失败：' + data.message);
+        }
+    } catch (e) {
+        alert('添加失败：' + e.message);
+    }
+}
+
+async function loadKnowledgeStats() {
+    const userId = getUserId();
+    console.log('加载知识库统计，用户ID:', userId);
+    try {
+        const [statsResp, docsResp] = await Promise.all([
+            fetch(`/api/chat/knowledge/stats/${userId}`),
+            fetch(`/api/chat/knowledge/documents/${userId}`)
+        ]);
+        const statsData = await statsResp.json();
+        const docsData = await docsResp.json();
+        console.log('统计数据:', statsData);
+        console.log('文档数据:', docsData);
+
+        if (statsData.code === 200) {
+            document.getElementById('docCount').textContent = statsData.data.documentCount;
+            document.getElementById('segmentCount').textContent = statsData.data.segmentCount;
+        }
+
+        if (docsData.code === 200) {
+            renderDocumentList(docsData.data);
+        }
+    } catch (e) {
+        console.error('加载统计失败:', e);
+    }
+}
+
+function renderDocumentList(documents) {
+    const container = document.getElementById('documentList');
+    if (!documents || documents.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无文档</div>';
+        return;
+    }
+
+    container.innerHTML = documents.map(doc => {
+        const uploadTime = doc.uploadTime ? new Date(doc.uploadTime).toLocaleString() : '未知时间';
+        return `
+            <div class="document-item" onclick="viewDocument('${escapeHtml(doc.fileName)}')">
+                <div class="document-icon">📄</div>
+                <div class="document-info">
+                    <div class="document-name">${escapeHtml(doc.fileName)}</div>
+                    <div class="document-meta">
+                        <span>${doc.segmentCount} 个分段</span>
+                        <span>• ${uploadTime}</span>
+                    </div>
+                </div>
+                <button class="document-delete-btn" onclick="event.stopPropagation(); deleteDocument('${escapeHtml(doc.fileName)}')" title="删除文档">✕</button>
+            </div>
+        `;
+    }).join('');
+}
+
+async function viewDocument(fileName) {
+    const userId = getUserId();
+    try {
+        const resp = await fetch(`/api/chat/knowledge/document/${userId}?fileName=${encodeURIComponent(fileName)}`);
+        const data = await resp.json();
+        if (data.code === 200) {
+            // 创建弹窗显示文档内容
+            const modal = document.createElement('div');
+            modal.className = 'document-modal';
+            modal.innerHTML = `
+                <div class="document-modal-content">
+                    <div class="document-modal-header">
+                        <h3>${escapeHtml(fileName)}</h3>
+                        <button class="close-btn" onclick="this.closest('.document-modal').remove()">✕</button>
+                    </div>
+                    <div class="document-modal-body">
+                        <pre>${escapeHtml(data.data)}</pre>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } else {
+            alert('获取文档内容失败：' + data.message);
+        }
+    } catch (e) {
+        alert('获取文档内容失败：' + e.message);
+    }
+}
+
+async function deleteDocument(fileName) {
+    if (!confirm(`确定删除文档 "${fileName}" 吗？此操作不可恢复！`)) return;
+
+    const userId = getUserId();
+    try {
+        const resp = await fetch(`/api/chat/knowledge/document/${userId}?fileName=${encodeURIComponent(fileName)}`, {
+            method: 'DELETE'
+        });
+        const data = await resp.json();
+        if (data.code === 200) {
+            alert('文档已删除');
+            await loadKnowledgeStats();
+        } else {
+            alert('删除失败：' + data.message);
+        }
+    } catch (e) {
+        alert('删除失败：' + e.message);
+    }
+}
+
+async function clearKnowledge() {
+    if (!confirm('确定清空知识库吗？此操作不可恢复！')) return;
+    const userId = getUserId();
+    try {
+        const resp = await fetch(`/api/chat/knowledge/${userId}`, {method: 'DELETE'});
+        const data = await resp.json();
+        if (data.code === 200) {
+            alert('知识库已清空');
+            await loadKnowledgeStats();
+        } else {
+            alert('清空失败：' + data.message);
+        }
+    } catch (e) {
+        alert('清空失败：' + e.message);
+    }
+}
+
+function showAddTextDialog() {
+    const fileName = prompt('请输入文件名：', 'knowledge.txt');
+    if (!fileName) return;
+    
+    const content = prompt('请输入知识内容：');
+    if (!content) return;
+    
+    addTextToKnowledge(fileName, content);
 }
 
 function setStatus(online) {
@@ -34,16 +270,27 @@ function addMessage(role, content, timestamp) {
 
     const time = document.createElement('div');
     time.className = 'message-time';
-    const ts = timestamp
-        ? new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
-        : new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    let ts;
+    if (timestamp) {
+        try {
+            ts = new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        } catch (e) {
+            ts = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        }
+    } else {
+        ts = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    }
     time.textContent = `${role === 'user' ? '我' : 'AI助手'} · ${ts}`;
 
     bubble.appendChild(time);
     div.appendChild(avatar);
     div.appendChild(bubble);
     container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    
+    // 使用 setTimeout 确保 DOM 更新后再滚动
+    setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+    }, 10);
 }
 
 function showLoading() {
@@ -105,7 +352,8 @@ async function sendMessage() {
             body: JSON.stringify({
                 userId: userId,
                 message: msg,
-                sessionId: currentSessionId
+                sessionId: currentSessionId,
+                mode: currentMode
             })
         });
         const data = await resp.json();
@@ -184,12 +432,16 @@ async function loadSessionList() {
 
 async function loadSession(sessionId) {
     try {
+        console.log('加载会话:', sessionId);
         const [sessionResp, msgResp] = await Promise.all([
             fetch(`${SESSION_API_BASE}/${sessionId}`),
             fetch(`${API_BASE}/history/session/${sessionId}`)
         ]);
         const sessionData = await sessionResp.json();
         const msgData = await msgResp.json();
+
+        console.log('会话数据:', sessionData);
+        console.log('消息数据:', msgData);
 
         if (sessionData.code !== 200 || !sessionData.data) {
             alert('会话不存在或已过期');
@@ -201,14 +453,32 @@ async function loadSession(sessionId) {
         document.getElementById('currentSessionTitle').textContent = currentSessionTitle;
 
         const messages = (msgData.code === 200 && msgData.data) ? msgData.data : [];
+        console.log('消息列表类型:', typeof messages, Array.isArray(messages));
+        console.log('消息列表:', messages);
+        console.log('消息数量:', messages.length);
+        
         const container = document.getElementById('chatMessages');
         container.innerHTML = '';
 
-        if (messages.length === 0) {
+        if (!Array.isArray(messages) || messages.length === 0) {
+            console.log('消息列表为空，显示提示');
             addMessage('ai', '该对话暂无消息记录。');
         } else {
-            messages.forEach(m => {
-                addMessage(m.role === 'user' ? 'user' : 'ai', m.content, m.timestamp);
+            console.log('开始渲染消息，数量:', messages.length);
+            messages.forEach((m, index) => {
+                console.log(`消息 ${index}:`, m);
+                // 处理 role 字段，支持多种格式
+                let role = 'ai';
+                if (m.role) {
+                    const roleLower = m.role.toLowerCase();
+                    if (roleLower === 'user' || roleLower === 'USER') {
+                        role = 'user';
+                    }
+                }
+                const content = m.content || m.message || '';
+                const timestamp = m.timestamp || m.createTime;
+                console.log(`添加消息 ${index}:`, {role, contentLength: content.length, timestamp});
+                addMessage(role, content, timestamp);
             });
         }
 
@@ -216,7 +486,11 @@ async function loadSession(sessionId) {
         const active = document.querySelector(`.session-item[data-id="${sessionId}"]`);
         if (active) active.classList.add('active');
 
-        container.scrollTop = container.scrollHeight;
+        // 强制滚动到底部
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+            console.log('滚动到:', container.scrollHeight);
+        }, 100);
     } catch (e) {
         console.error('加载会话失败:', e);
         alert('加载会话失败，请重试');
@@ -334,8 +608,17 @@ document.addEventListener('DOMContentLoaded', function() {
         loadSessionList();
     });
 
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            uploadDocument(file);
+        }
+        this.value = '';
+    });
+
     checkHealth();
     setInterval(checkHealth, 30000);
     setTimeout(loadSessionList, 500);
+    loadModePreference();
     input.focus();
 });

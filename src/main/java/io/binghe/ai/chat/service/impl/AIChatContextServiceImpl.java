@@ -22,20 +22,29 @@ public class AIChatContextServiceImpl implements AIChatContextService {
     @Override
     public List<AIMessage> getContextMessage(String userId) {
         try {
+            log.info("开始获取上下文消息，用户ID: {}", userId);
             List<ChatMessage> chatMessages = redisChatMemoryStore.getMessages(userId);
+            log.info("从Redis获取到原始消息，用户ID: {}, 数量: {}", userId, chatMessages == null ? 0 : chatMessages.size());
+            
             if (chatMessages == null || chatMessages.isEmpty()) {
+                log.warn("Redis中没有找到消息，用户ID: {}", userId);
                 return Collections.emptyList();
             }
 
             List<AIMessage> result = new ArrayList<>();
-            for (ChatMessage chatMessage : chatMessages) {
+            for (int i = 0; i < chatMessages.size(); i++) {
+                ChatMessage chatMessage = chatMessages.get(i);
+                log.debug("处理消息 {}: 类型={}", i, chatMessage.getClass().getSimpleName());
                 AIMessage aiMessage = AIMessage.fromChatMessage(chatMessage);
                 if (aiMessage != null && aiMessage.isValid()) {
                     result.add(aiMessage);
+                    log.debug("消息 {} 转换成功: role={}, content长度={}", i, aiMessage.getRole(), aiMessage.getContent().length());
+                } else {
+                    log.warn("消息 {} 转换失败或无效", i);
                 }
             }
 
-            log.info("成功获取到消息，用户ID: {}, 消息条数:{}", userId, result.size());
+            log.info("成功获取到消息，用户ID: {}, 原始消息数:{}, 有效消息数:{}", userId, chatMessages.size(), result.size());
             return result;
         } catch (Exception e) {
             log.error("获取上下文消息失败，用户ID: {}, 错误: {}", userId, e.getMessage(), e);

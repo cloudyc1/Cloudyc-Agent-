@@ -10,6 +10,8 @@ public interface AIChatService {
 
     String sendMessageWithSession(String userId, String sessionId, String userMessage);
 
+    String sendMessageWithSession(String userId, String sessionId, String userMessage, String mode);
+
     void clearMessage(String userId);
 
     List<AIMessage> getMessage(String userId);

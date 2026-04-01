@@ -40,6 +40,41 @@
 
     <!-- 右侧主区域 -->
     <div class="main-area">
+        <!-- 知识库管理面板 -->
+        <div class="knowledge-panel" id="knowledgePanel">
+            <div class="panel-header">
+                <h3>📚 知识库管理</h3>
+                <button class="close-panel" onclick="toggleKnowledgePanel()">✕</button>
+            </div>
+            <div class="panel-content">
+                <div class="upload-area">
+                    <input type="file" id="fileInput" accept=".txt,.md,.pdf,.doc,.docx" style="display: none;">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        <span>📁</span> 上传文档
+                    </button>
+                    <button class="add-text-btn" onclick="showAddTextDialog()">
+                        <span>✏️</span> 添加文本
+                    </button>
+                </div>
+                <div class="knowledge-stats" id="knowledgeStats">
+                    <div class="stat-item">
+                        <span class="stat-label">文档数</span>
+                        <span class="stat-value" id="docCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">分段数</span>
+                        <span class="stat-value" id="segmentCount">0</span>
+                    </div>
+                </div>
+                <div class="document-list" id="documentList">
+                    <div class="empty-state">暂无文档</div>
+                </div>
+                <button class="clear-btn" onclick="clearKnowledge()">
+                    <span>🗑️</span> 清空知识库
+                </button>
+            </div>
+        </div>
+
         <!-- 聊天区域 -->
         <div class="chat-container">
             <div class="chat-header">
@@ -47,9 +82,18 @@
                     <span>🤖</span> 智能对话助手
                     <span id="currentSessionTitle" class="session-title"></span>
                 </h2>
-                <div class="chat-header-status">
-                    <span class="status-dot" id="statusDot"></span>
-                    <span id="apiStatusText">就绪</span>
+                <div class="chat-header-controls">
+                    <button class="knowledge-toggle-btn" onclick="toggleKnowledgePanel()" title="知识库管理">
+                        <span>📚</span>
+                    </button>
+                    <button class="mode-toggle-btn" id="modeToggleBtn" onclick="toggleMode()">
+                        <span class="mode-icon">🔄</span>
+                        <span class="mode-text" id="modeText">模式: Normal</span>
+                    </button>
+                    <div class="chat-header-status">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="apiStatusText">就绪</span>
+                    </div>
                 </div>
             </div>
 
