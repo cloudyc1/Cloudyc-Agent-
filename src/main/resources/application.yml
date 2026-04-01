@@ -33,7 +33,7 @@ langchain4j:
       log-responses: false
 
     embedding-model:
-      api-key: sk-6f64a2d36aca478f9b2c9c3af6f9df1c
+      api-key: 
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
       model-name: text-embedding-v3
       dimensions: 1536
