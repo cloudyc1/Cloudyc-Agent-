@@ -6,8 +6,8 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-    background: #0c0c0d;
-    color: #e4e4e7;
+    background: #0a0a0a;
+    color: #d1d5db;
     height: 100vh;
     overflow: hidden;
 }
@@ -44,8 +44,8 @@ body {
 
 .new-chat-btn {
     padding: 8px 14px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    color: white;
+    background: #e5e7eb;
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     font-size: 13px;
@@ -58,8 +58,8 @@ body {
 }
 
 .new-chat-btn:hover {
+    background: #f3f4f6;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .new-chat-btn span {
@@ -280,8 +280,8 @@ body {
 
 .knowledge-toggle-btn {
     padding: 8px 12px;
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    color: white;
+    background: #e5e7eb;
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     font-size: 13px;
@@ -291,14 +291,14 @@ body {
 }
 
 .knowledge-toggle-btn:hover {
+    background: #f3f4f6;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
 }
 
 .mode-toggle-btn {
     padding: 8px 16px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
+    background: #e5e7eb;
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     font-size: 13px;
@@ -311,16 +311,17 @@ body {
 }
 
 .mode-toggle-btn:hover {
+    background: #f3f4f6;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .mode-toggle-btn.rag-mode {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: #2563eb;
+    color: white;
 }
 
 .mode-toggle-btn.rag-mode:hover {
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    background: #3b82f6;
 }
 
 .mode-icon {
@@ -419,11 +420,11 @@ body {
 }
 
 .user-avatar {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: #2563eb;
 }
 
 .ai-avatar {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: #374151;
 }
 
 .message-content {
@@ -435,7 +436,7 @@ body {
 }
 
 .message-user .message-content {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    background: #2563eb;
     color: white;
     border-bottom-right-radius: 4px;
 }
@@ -500,8 +501,8 @@ body {
 
 .send-button {
     padding: 8px 18px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    color: white;
+    background: #e5e7eb;
+    color: #1f2937;
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -516,8 +517,8 @@ body {
 }
 
 .send-button:hover:not(:disabled) {
+    background: #f3f4f6;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .send-button:disabled {
@@ -587,8 +588,8 @@ body {
 .upload-btn, .add-text-btn {
     flex: 1;
     padding: 12px;
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    color: white;
+    background: #e5e7eb;
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     font-size: 13px;
@@ -602,8 +603,8 @@ body {
 }
 
 .upload-btn:hover, .add-text-btn:hover {
+    background: #f3f4f6;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
 }
 
 .knowledge-stats {
@@ -631,7 +632,7 @@ body {
     display: block;
     font-size: 20px;
     font-weight: 700;
-    color: #8b5cf6;
+    color: #2563eb;
 }
 
 .document-list {
