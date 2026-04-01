@@ -1,14 +1,14 @@
-package io.binghe.ai.chat.service.impl;
+package io.cloudyc.ai.chat.service.impl;
 
-import io.binghe.ai.chat.assistant.ChatAssistant;
-import io.binghe.ai.chat.assistant.RAGChatAssistant;
-import io.binghe.ai.chat.model.AIMessage;
-import io.binghe.ai.chat.model.ChatSession;
-import io.binghe.ai.chat.model.KnowledgeDocument;
-import io.binghe.ai.chat.service.AIChatContextService;
-import io.binghe.ai.chat.service.AIChatService;
-import io.binghe.ai.chat.service.ChatSessionService;
-import io.binghe.ai.chat.service.RAGService;
+import io.cloudyc.ai.chat.assistant.ChatAssistant;
+import io.cloudyc.ai.chat.assistant.RAGChatAssistant;
+import io.cloudyc.ai.chat.model.AIMessage;
+import io.cloudyc.ai.chat.model.ChatSession;
+import io.cloudyc.ai.chat.model.KnowledgeDocument;
+import io.cloudyc.ai.chat.service.AIChatContextService;
+import io.cloudyc.ai.chat.service.AIChatService;
+import io.cloudyc.ai.chat.service.ChatSessionService;
+import io.cloudyc.ai.chat.service.RAGService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

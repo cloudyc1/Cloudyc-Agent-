@@ -1,9 +1,9 @@
-package io.binghe.ai.chat.service.impl;
+package io.cloudyc.ai.chat.service.impl;
 
 import dev.langchain4j.data.message.ChatMessage;
-import io.binghe.ai.chat.memory.RedisChatMemoryStore;
-import io.binghe.ai.chat.model.AIMessage;
-import io.binghe.ai.chat.service.AIChatContextService;
+import io.cloudyc.ai.chat.memory.RedisChatMemoryStore;
+import io.cloudyc.ai.chat.model.AIMessage;
+import io.cloudyc.ai.chat.service.AIChatContextService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

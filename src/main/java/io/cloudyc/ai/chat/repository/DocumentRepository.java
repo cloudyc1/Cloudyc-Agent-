@@ -1,7 +1,7 @@
-package io.binghe.ai.chat.repository;
+package io.cloudyc.ai.chat.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.binghe.ai.chat.model.DocumentInfo;
+import io.cloudyc.ai.chat.model.DocumentInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;

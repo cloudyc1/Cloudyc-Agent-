@@ -1,4 +1,4 @@
-package io.binghe.ai.chat.config;
+package io.cloudyc.ai.chat.config;
 
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;

@@ -1,10 +1,10 @@
-package io.binghe.ai.chat.config;
+package io.cloudyc.ai.chat.config;
 
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
-import io.binghe.ai.chat.assistant.ChatAssistant;
+import io.cloudyc.ai.chat.assistant.ChatAssistant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

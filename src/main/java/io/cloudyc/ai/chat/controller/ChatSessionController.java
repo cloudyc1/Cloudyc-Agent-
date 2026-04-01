@@ -1,8 +1,8 @@
-package io.binghe.ai.chat.controller;
+package io.cloudyc.ai.chat.controller;
 
-import io.binghe.ai.chat.model.ChatSession;
-import io.binghe.ai.chat.response.MessageResponse;
-import io.binghe.ai.chat.service.ChatSessionService;
+import io.cloudyc.ai.chat.model.ChatSession;
+import io.cloudyc.ai.chat.response.MessageResponse;
+import io.cloudyc.ai.chat.service.ChatSessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

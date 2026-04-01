@@ -47,7 +47,7 @@ rag:
     chunk-overlap: 50
 
 server:
-  port: 8080
+  port: 8081
   servlet:
     encoding:
       charset: UTF-8
@@ -56,7 +56,7 @@ server:
 
 logging:
   level:
-    io.binghe.ai.chat: DEBUG
+    io.cloudyc.ai.chat: DEBUG
     dev.langchain4j: DEBUG
   pattern:
     console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'

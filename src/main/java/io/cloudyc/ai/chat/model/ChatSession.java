@@ -1,4 +1,4 @@
-package io.binghe.ai.chat.model;
+package io.cloudyc.ai.chat.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

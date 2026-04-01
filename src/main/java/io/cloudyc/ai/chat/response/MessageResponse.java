@@ -1,16 +1,10 @@
-package io.binghe.ai.chat.response;
+package io.cloudyc.ai.chat.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @author binghe(微信 : hacker_binghe)
- * @version 1.0.0
- * @description 封装的响应数据
- * @github https://github.com/binghe001
- * @copyright 公众号: 冰河技术
- */
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

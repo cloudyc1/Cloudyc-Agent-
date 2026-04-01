@@ -1,4 +1,4 @@
-package io.binghe.ai.chat.memory;
+package io.cloudyc.ai.chat.memory;
 
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;

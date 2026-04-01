@@ -1,6 +1,6 @@
-package io.binghe.ai.chat.exception;
+package io.cloudyc.ai.chat.exception;
 
-import io.binghe.ai.chat.response.MessageResponse;
+import io.cloudyc.ai.chat.response.MessageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,13 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
-/**
- * @author binghe(微信 : hacker_binghe)
- * @version 1.0.0
- * @description 全局异常处理器
- * @github https://github.com/binghe001
- * @copyright 公众号: 冰河技术
- */
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {

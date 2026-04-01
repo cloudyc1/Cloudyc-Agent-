@@ -1,15 +1,15 @@
-package io.binghe.ai.chat.controller;
+package io.cloudyc.ai.chat.controller;
 
-import io.binghe.ai.chat.constants.AIConstants;
-import io.binghe.ai.chat.model.AIMessage;
-import io.binghe.ai.chat.model.ChatSession;
-import io.binghe.ai.chat.model.DocumentInfo;
-import io.binghe.ai.chat.model.KnowledgeStats;
-import io.binghe.ai.chat.request.MessageRequest;
-import io.binghe.ai.chat.response.MessageResponse;
-import io.binghe.ai.chat.service.AIChatService;
-import io.binghe.ai.chat.service.ChatSessionService;
-import io.binghe.ai.chat.service.RAGService;
+import io.cloudyc.ai.chat.constants.AIConstants;
+import io.cloudyc.ai.chat.model.AIMessage;
+import io.cloudyc.ai.chat.model.ChatSession;
+import io.cloudyc.ai.chat.model.DocumentInfo;
+import io.cloudyc.ai.chat.model.KnowledgeStats;
+import io.cloudyc.ai.chat.request.MessageRequest;
+import io.cloudyc.ai.chat.response.MessageResponse;
+import io.cloudyc.ai.chat.service.AIChatService;
+import io.cloudyc.ai.chat.service.ChatSessionService;
+import io.cloudyc.ai.chat.service.RAGService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

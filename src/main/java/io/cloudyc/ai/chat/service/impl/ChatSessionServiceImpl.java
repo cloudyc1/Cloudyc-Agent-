@@ -1,9 +1,9 @@
-package io.binghe.ai.chat.service.impl;
+package io.cloudyc.ai.chat.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.binghe.ai.chat.assistant.ChatAssistant;
-import io.binghe.ai.chat.model.ChatSession;
-import io.binghe.ai.chat.service.ChatSessionService;
+import io.cloudyc.ai.chat.assistant.ChatAssistant;
+import io.cloudyc.ai.chat.model.ChatSession;
+import io.cloudyc.ai.chat.service.ChatSessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

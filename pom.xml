@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>io.binghe.ai.chat</groupId>
+    <groupId>io.cloudyc.ai.chat</groupId>
     <artifactId>spring-ai-chat-redis</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 

@@ -1,4 +1,4 @@
-package io.binghe.ai.chat.service;
+package io.cloudyc.ai.chat.service;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentParser;
@@ -11,10 +11,10 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingStore;
-import io.binghe.ai.chat.model.DocumentInfo;
-import io.binghe.ai.chat.model.KnowledgeDocument;
-import io.binghe.ai.chat.model.KnowledgeStats;
-import io.binghe.ai.chat.repository.DocumentRepository;
+import io.cloudyc.ai.chat.model.DocumentInfo;
+import io.cloudyc.ai.chat.model.KnowledgeDocument;
+import io.cloudyc.ai.chat.model.KnowledgeStats;
+import io.cloudyc.ai.chat.repository.DocumentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,6 +1,6 @@
-package io.binghe.ai.chat.service;
+package io.cloudyc.ai.chat.service;
 
-import io.binghe.ai.chat.model.AIMessage;
+import io.cloudyc.ai.chat.model.AIMessage;
 
 import java.util.List;
 

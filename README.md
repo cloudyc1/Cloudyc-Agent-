@@ -27,7 +27,7 @@
 
 ```
 spring-ai-chat-redis/
-├── src/main/java/io/binghe/ai/chat/
+├── src/main/java/io/cloudyc/ai/chat/
 │   ├── assistant/          # AI助手接口
 │   ├── config/             # 配置类
 │   ├── constants/          # 常量定义

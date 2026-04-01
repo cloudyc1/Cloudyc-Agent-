@@ -1,4 +1,4 @@
-package io.binghe.ai.chat.config;
+package io.cloudyc.ai.chat.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package io.binghe.ai.chat.model;
+package io.cloudyc.ai.chat.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

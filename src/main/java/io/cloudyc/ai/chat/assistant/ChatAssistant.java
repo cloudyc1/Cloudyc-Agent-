@@ -1,4 +1,4 @@
-package io.binghe.ai.chat.assistant;
+package io.cloudyc.ai.chat.assistant;
 
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
